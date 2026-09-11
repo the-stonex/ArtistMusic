@@ -22,12 +22,12 @@ class Config:
         # ==================================================
 
         self.API_ID: int = int(
-            getenv("API_ID", "29308061")
+            getenv("API_ID", "0")
         )
 
         self.API_HASH: str = getenv(
             "API_HASH",
-            "462de3dfc98fd938ef9c6ee31a72d099"
+            ""
         )
 
         self.BOT_TOKEN: str = getenv(
@@ -49,7 +49,7 @@ class Config:
 
         self.MONGO_URL: str = getenv(
             "MONGO_DB_URI",
-            "mongodb+srv://Elevenyts:Elevenyts@cluster0.vuyc1u2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+            ""
         )
 
         # ==================================================
@@ -144,7 +144,7 @@ class Config:
 
         self.SHRUTI_API_KEY: str = getenv(
             "SHRUTI_API_KEY",
-            ""
+            "ShrutiBotsqm67uyKQ48TLcu6TPe1u"
         )
 
         self.ENABLE_API: bool = self._str_to_bool(
@@ -351,13 +351,6 @@ class Config:
             raise SystemExit(
                 "Missing required env vars: "
                 + ", ".join(missing)
-            )
-
-        if self.ENABLE_API and not self.SHRUTI_API_KEY:
-
-            print(
-                "Warning: ENABLE_API is True "
-                "but SHRUTI_API_KEY is not set"
             )
 
 
