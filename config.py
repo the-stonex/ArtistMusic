@@ -1,11 +1,3 @@
-# ==========================================================
-# Copyright (c) 2026 ArtistBots
-# All Rights Reserved.
-#
-# Project : ArtistMusic
-# Type    : API Based Telegram Music Bot
-# ==========================================================
-
 from os import getenv
 from typing import List
 
@@ -18,12 +10,10 @@ class Config:
     def __init__(self):
 
         # ==================================================
-        # Telegram API
+        # Telegram
         # ==================================================
 
-        self.API_ID: int = int(
-            getenv("API_ID", "0")
-        )
+        self.API_ID: int = int(getenv("API_ID", "0"))
 
         self.API_HASH: str = getenv(
             "API_HASH",
@@ -44,7 +34,7 @@ class Config:
         )
 
         # ==================================================
-        # Database
+        # MongoDB
         # ==================================================
 
         self.MONGO_URL: str = getenv(
@@ -88,17 +78,17 @@ class Config:
         )
 
         # ==================================================
-        # Support Links
+        # Support
         # ==================================================
 
         self.SUPPORT_CHANNEL: str = getenv(
             "SUPPORT_CHANNEL",
-            "https://t.me/Elevenytschats"
+            ""
         )
 
         self.SUPPORT_CHAT: str = getenv(
             "SUPPORT_CHAT",
-            "https://t.me/Artistbots"
+            ""
         )
 
         # ==================================================
@@ -110,7 +100,7 @@ class Config:
         )
 
         # ==================================================
-        # Feature Flags
+        # Feature Settings
         # ==================================================
 
         self.AUTO_END: bool = self._str_to_bool(
@@ -144,7 +134,7 @@ class Config:
 
         self.SHRUTI_API_KEY: str = getenv(
             "SHRUTI_API_KEY",
-            "ShrutiBotsqm67uyKQ48TLcu6TPe1u"
+            ""
         )
 
         self.ENABLE_API: bool = self._str_to_bool(
@@ -182,22 +172,22 @@ class Config:
 
         self.DEFAULT_THUMB: str = getenv(
             "DEFAULT_THUMB",
-            "https://files.catbox.moe/3p0du3.jpeg"
+            ""
         )
 
         self.PING_IMG: str = getenv(
             "PING_IMG",
-            "https://files.catbox.moe/3p0du3.jpeg"
+            ""
         )
 
         self.START_IMG: str = getenv(
             "START_IMG",
-            "https://files.catbox.moe/3p0du3.jpeg"
+            ""
         )
 
         self.RADIO_IMG: str = getenv(
             "RADIO_IMG",
-            "https://files.catbox.moe/3p0du3.jpeg"
+            ""
         )
 
         # ==================================================
@@ -226,7 +216,6 @@ class Config:
 
         try:
             height = int(raw_value)
-
         except (TypeError, ValueError):
             return default_height
 
@@ -332,6 +321,8 @@ class Config:
             "OWNER_ID": self.OWNER_ID,
 
             "STRING_SESSION": self.SESSION1,
+
+            "SHRUTI_API_KEY": self.SHRUTI_API_KEY,
         }
 
         missing = [
@@ -347,7 +338,6 @@ class Config:
         ]
 
         if missing:
-
             raise SystemExit(
                 "Missing required env vars: "
                 + ", ".join(missing)
