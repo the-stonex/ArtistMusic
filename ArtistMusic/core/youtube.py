@@ -1641,4 +1641,4 @@ class YouTube:
         return result
 
 
-YouTube = YouTube()
+        return result
