@@ -37,6 +37,43 @@
     "STRING_SESSION": {
       "description": "Telegram Assistant String Session",
       "required": true
+    },
+    "STRING_SESSION2": {
+      "description": "Second Telegram Assistant String Session",
+      "required": false
+    },
+    "STRING_SESSION3": {
+      "description": "Third Telegram Assistant String Session",
+      "required": false
+    },
+    "SHRUTI_API_URL": {
+      "description": "Shruti API URL",
+      "value": "https://api01.shrutibots.site",
+      "required": true
+    },
+    "SHRUTI_API_KEY": {
+      "description": "Shruti API Key",
+      "required": true
+    },
+    "ENABLE_API": {
+      "description": "Enable Shruti API",
+      "value": "True",
+      "required": true
+    },
+    "ENABLE_COOKIES_FALLBACK": {
+      "description": "Use YouTube cookies as fallback",
+      "value": "True",
+      "required": true
+    },
+    "API_TIMEOUT": {
+      "description": "Shruti API connection timeout",
+      "value": "300",
+      "required": true
+    },
+    "API_STREAM_TIMEOUT": {
+      "description": "Shruti API download stream timeout",
+      "value": "600",
+      "required": true
     }
   }
 }
