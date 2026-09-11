@@ -1,7 +1,13 @@
 {
   "name": "ArtistMusic",
-  "description": "Telegram Voice Chat Music Bot",
+  "description": "Telegram Music Bot",
   "repository": "https://github.com/elevenyts/ArtistMusic",
+  "keywords": [
+    "telegram",
+    "music",
+    "bot",
+    "pyrogram"
+  ],
   "stack": "container",
   "env": {
     "API_ID": {
@@ -16,20 +22,20 @@
       "description": "Telegram Bot Token",
       "required": true
     },
-    "STRING_SESSION": {
-      "description": "Pyrogram Assistant String Session",
-      "required": true
-    },
     "MONGO_DB_URI": {
-      "description": "MongoDB URI",
+      "description": "MongoDB Connection URI",
       "required": true
     },
     "LOGGER_ID": {
-      "description": "Telegram Logger Group ID",
+      "description": "Telegram Logger Group/Channel ID",
       "required": true
     },
     "OWNER_ID": {
-      "description": "Telegram Owner ID",
+      "description": "Telegram Owner User ID",
+      "required": true
+    },
+    "STRING_SESSION": {
+      "description": "Telegram Assistant String Session",
       "required": true
     },
     "ARTISTBOTS_API_URL": {
@@ -41,11 +47,11 @@
       "required": false
     },
     "SUPPORT_CHAT": {
-      "description": "Support Chat",
+      "description": "Support Chat Username",
       "required": false
     },
     "SUPPORT_CHANNEL": {
-      "description": "Support Channel",
+      "description": "Support Channel Username",
       "required": false
     },
     "START_IMG": {
@@ -57,11 +63,11 @@
       "required": false
     },
     "STRING_SESSION2": {
-      "description": "Second Assistant Session",
+      "description": "Second Assistant String Session",
       "required": false
     },
     "STRING_SESSION3": {
-      "description": "Third Assistant Session",
+      "description": "Third Assistant String Session",
       "required": false
     }
   }
