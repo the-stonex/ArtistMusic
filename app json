@@ -1,7 +1,7 @@
 {
   "name": "ArtistMusic",
   "description": "Telegram Music Bot",
-  "repository": "https://github.com/elevenyts/ArtistMusic",
+  "repository": "https://github.com/the-stonex/ArtistMusic",
   "keywords": [
     "telegram",
     "music",
@@ -27,48 +27,16 @@
       "required": true
     },
     "LOGGER_ID": {
-      "description": "Telegram Logger Group/Channel ID",
+      "description": "Logger Group/Channel ID",
       "required": true
     },
     "OWNER_ID": {
-      "description": "Telegram Owner User ID",
+      "description": "Owner Telegram User ID",
       "required": true
     },
     "STRING_SESSION": {
       "description": "Telegram Assistant String Session",
       "required": true
-    },
-    "ARTISTBOTS_API_URL": {
-      "description": "ArtistBots API URL",
-      "required": false
-    },
-    "ARTISTBOTS_KEY": {
-      "description": "ArtistBots API Key",
-      "required": false
-    },
-    "SUPPORT_CHAT": {
-      "description": "Support Chat Username",
-      "required": false
-    },
-    "SUPPORT_CHANNEL": {
-      "description": "Support Channel Username",
-      "required": false
-    },
-    "START_IMG": {
-      "description": "Start Image URL",
-      "required": false
-    },
-    "PING_IMG": {
-      "description": "Ping Image URL",
-      "required": false
-    },
-    "STRING_SESSION2": {
-      "description": "Second Assistant String Session",
-      "required": false
-    },
-    "STRING_SESSION3": {
-      "description": "Third Assistant String Session",
-      "required": false
     }
   }
 }
