@@ -27,7 +27,7 @@
       "required": true
     },
     "LOGGER_ID": {
-      "description": "Logger Group/Channel ID",
+      "description": "Logger Group or Channel ID",
       "required": true
     },
     "OWNER_ID": {
@@ -49,7 +49,7 @@
     "SHRUTI_API_URL": {
       "description": "Shruti API URL",
       "value": "https://api01.shrutibots.site",
-      "required": true
+      "required": false
     },
     "SHRUTI_API_KEY": {
       "description": "Shruti API Key",
@@ -58,22 +58,22 @@
     "ENABLE_API": {
       "description": "Enable Shruti API",
       "value": "True",
-      "required": true
+      "required": false
     },
     "ENABLE_COOKIES_FALLBACK": {
-      "description": "Use YouTube cookies as fallback",
+      "description": "Use YouTube Cookies as Fallback",
       "value": "True",
-      "required": true
+      "required": false
     },
     "API_TIMEOUT": {
-      "description": "Shruti API connection timeout",
+      "description": "Shruti API Connection Timeout",
       "value": "300",
-      "required": true
+      "required": false
     },
     "API_STREAM_TIMEOUT": {
-      "description": "Shruti API download stream timeout",
+      "description": "Shruti API Download Stream Timeout",
       "value": "600",
-      "required": true
+      "required": false
     }
   }
 }
