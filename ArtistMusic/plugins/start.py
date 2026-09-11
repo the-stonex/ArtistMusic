@@ -16,7 +16,7 @@
 
 import logging
 
-from pyrogram import enums, errors, filters, types
+from pyrogram import enums, filters, types
 
 from ArtistMusic import app, config, db, lang
 from ArtistMusic.helpers import buttons, utils
@@ -26,292 +26,309 @@ LOGGER = logging.getLogger(__name__)
 
 
 # ==========================================================
-# HELP
+# HELP COMMAND
 # ==========================================================
 
-@app.on_message(filters.command(["help"]) & filters.private & ~app.bl_users)
+@app.on_message(
+    filters.command("help")
+    & filters.private
+    & ~app.bl_users
+)
 @lang.language()
-async def _help(_, m: types.Message):
+async def _help(_, message: types.Message):
     """Handle /help command in private chats."""
 
     try:
-        await m.delete()
+        await message.delete()
     except Exception:
         pass
 
     try:
-        await m.reply_photo(
+        markup = buttons.help_markup(message.lang)
+    except Exception as e:
+        LOGGER.exception("Failed to create help buttons: %s", e)
+        markup = None
+
+    try:
+        await message.reply_photo(
             photo=config.START_IMG,
-            caption=m.lang["help_menu"],
-            reply_markup=buttons.help_markup(m.lang),
+            caption=message.lang["help_menu"],
+            reply_markup=markup,
             quote=True,
         )
 
-    except Exception as photo_error:
+        LOGGER.info(
+            "Help menu sent successfully to user %s",
+            message.from_user.id if message.from_user else "unknown",
+        )
+
+    except Exception as e:
         LOGGER.exception(
             "Help photo failed, using text fallback: %s",
-            photo_error,
+            e,
         )
 
         try:
-            await m.reply_text(
-                text=m.lang["help_menu"],
-                reply_markup=buttons.help_markup(m.lang),
+            await message.reply_text(
+                text=message.lang["help_menu"],
+                reply_markup=markup,
                 quote=True,
             )
-        except Exception as text_error:
+
+            LOGGER.info("Help text fallback sent successfully.")
+
+        except Exception as e2:
             LOGGER.exception(
-                "Help text fallback also failed: %s",
-                text_error,
+                "Help text fallback failed: %s",
+                e2,
             )
 
 
 # ==========================================================
-# START
+# START COMMAND
 # ==========================================================
 
-@app.on_message(filters.command(["start"]))
+@app.on_message(filters.command("start"))
 @lang.language()
 async def start(_, message: types.Message):
     """Handle /start command."""
 
-    # ------------------------------------------------------
-    # Basic message validation
-    # ------------------------------------------------------
-
-    if not message:
-        LOGGER.warning("Received empty message in /start handler")
-        return
-
-    if not message.chat:
-        LOGGER.warning("Received /start without chat")
-        return
-
-    # ------------------------------------------------------
-    # Delete /start command in groups
-    # ------------------------------------------------------
-
-    if message.chat.type != enums.ChatType.PRIVATE:
-        try:
-            await message.delete()
-        except Exception as e:
-            LOGGER.debug("Could not delete group /start message: %s", e)
-
-    # ------------------------------------------------------
-    # User validation
-    # ------------------------------------------------------
-
-    if not message.from_user:
-        LOGGER.warning(
-            "Cannot process /start: message.from_user is None"
-        )
-        return
-
-    user_id = message.from_user.id
-
-    # ------------------------------------------------------
-    # Blacklisted user
-    # ------------------------------------------------------
-
     try:
-        if (
-            user_id in app.bl_users
-            and user_id not in db.notified
-        ):
-            return await message.reply_text(
-                message.lang["bl_user_notify"]
-            )
+        if not message or not message.chat:
+            LOGGER.error("Invalid /start message received.")
+            return
 
-    except Exception as e:
-        LOGGER.exception(
-            "Blacklist check failed for user %s: %s",
+        if not message.from_user:
+            LOGGER.warning(
+                "Ignoring /start because from_user is missing."
+            )
+            return
+
+        user_id = message.from_user.id
+        chat_id = message.chat.id
+        private = message.chat.type == enums.ChatType.PRIVATE
+
+        LOGGER.info(
+            "Processing /start | user=%s | chat=%s | private=%s",
             user_id,
-            e,
-        )
-
-    # ------------------------------------------------------
-    # /start help
-    # ------------------------------------------------------
-
-    try:
-        if (
-            len(message.command) > 1
-            and message.command[1].lower() == "help"
-        ):
-            return await _help(_, message)
-
-    except Exception as e:
-        LOGGER.exception(
-            "Failed while processing /start help: %s",
-            e,
-        )
-
-    # ------------------------------------------------------
-    # Chat type
-    # ------------------------------------------------------
-
-    private = message.chat.type == enums.ChatType.PRIVATE
-
-    # ------------------------------------------------------
-    # Start text
-    # ------------------------------------------------------
-
-    try:
-        if private:
-            _text = message.lang["start_pm"].format(
-                message.from_user.first_name,
-                app.name,
-            )
-        else:
-            _text = message.lang["start_gp"].format(
-                app.name,
-            )
-
-    except Exception as e:
-        LOGGER.exception(
-            "Failed to build start text: %s",
-            e,
-        )
-
-        # Absolute fallback so /start can still respond
-        first_name = (
-            message.from_user.first_name
-            or "there"
-        )
-
-        _text = (
-            f"👋 Hello {first_name}!\n\n"
-            f"🎵 Welcome to {app.name}\n\n"
-            "Use the buttons below to continue."
-        )
-
-    # ------------------------------------------------------
-    # Start buttons
-    # ------------------------------------------------------
-
-    key = None
-
-    try:
-        key = buttons.start_key(
-            message.lang,
+            chat_id,
             private,
         )
 
-    except Exception as e:
-        LOGGER.exception(
-            "Failed to create start buttons: %s",
-            e,
-        )
+        # --------------------------------------------------
+        # Delete command in groups
+        # --------------------------------------------------
 
-    # ------------------------------------------------------
-    # Send START photo
-    # ------------------------------------------------------
+        if not private:
+            try:
+                await message.delete()
+            except Exception as e:
+                LOGGER.warning(
+                    "Could not delete group /start message: %s",
+                    e,
+                )
 
-    photo_sent = False
+        # --------------------------------------------------
+        # Blacklisted user
+        # --------------------------------------------------
 
-    if config.START_IMG:
         try:
-            await message.reply_photo(
-                photo=config.START_IMG,
-                caption=_text,
-                reply_markup=key,
-                quote=not private,
-            )
-
-            photo_sent = True
-
-            LOGGER.info(
-                "START photo sent successfully to user=%s chat=%s",
-                user_id,
-                message.chat.id,
-            )
-
-        except errors.ChatSendPhotosForbidden as e:
-            LOGGER.warning(
-                "Photo sending forbidden in chat %s: %s",
-                message.chat.id,
-                e,
-            )
-
-        except Exception as e:
-            LOGGER.exception(
-                "START photo failed in chat %s: %s",
-                message.chat.id,
-                e,
-            )
-
-    else:
-        LOGGER.warning(
-            "START_IMG is empty or not configured"
-        )
-
-    # ------------------------------------------------------
-    # TEXT FALLBACK
-    # ------------------------------------------------------
-
-    if not photo_sent:
-        try:
-            await message.reply_text(
-                text=_text,
-                reply_markup=key,
-                quote=not private,
-            )
-
-            LOGGER.info(
-                "START text fallback sent successfully "
-                "to user=%s chat=%s",
-                user_id,
-                message.chat.id,
-            )
-
-        except Exception as e:
-            LOGGER.exception(
-                "START text fallback FAILED "
-                "for user=%s chat=%s: %s",
-                user_id,
-                message.chat.id,
-                e,
-            )
-
-    # ------------------------------------------------------
-    # Save private user
-    # ------------------------------------------------------
-
-    if private:
-        try:
-            if await db.is_user(user_id):
+            if (
+                user_id in app.bl_users
+                and user_id not in db.notified
+            ):
+                await message.reply_text(
+                    message.lang["bl_user_notify"]
+                )
                 return
 
         except Exception as e:
             LOGGER.exception(
-                "Database user check failed for %s: %s",
+                "Blacklist check failed for user %s: %s",
                 user_id,
                 e,
             )
 
-        try:
-            await utils.send_log(message)
-        except Exception as e:
-            LOGGER.exception(
-                "Failed to send user log for %s: %s",
-                user_id,
-                e,
-            )
+        # --------------------------------------------------
+        # /start help
+        # --------------------------------------------------
 
         try:
-            await db.add_user(user_id)
-
-            LOGGER.info(
-                "New user added successfully: %s",
-                user_id,
-            )
+            if (
+                len(message.command) > 1
+                and message.command[1].lower() == "help"
+            ):
+                await _help(_, message)
+                return
 
         except Exception as e:
             LOGGER.exception(
-                "Failed to add user %s to database: %s",
-                user_id,
+                "Failed to process /start help: %s",
                 e,
             )
+
+        # --------------------------------------------------
+        # Start text
+        # --------------------------------------------------
+
+        try:
+            if private:
+                start_text = message.lang["start_pm"].format(
+                    message.from_user.first_name,
+                    app.name,
+                )
+            else:
+                start_text = message.lang["start_gp"].format(
+                    app.name,
+                )
+
+        except Exception as e:
+            LOGGER.exception(
+                "Failed to create start text: %s",
+                e,
+            )
+
+            first_name = (
+                message.from_user.first_name
+                or "there"
+            )
+
+            start_text = (
+                f"👋 Hello {first_name}!\n\n"
+                f"🎵 Welcome to {app.name}\n\n"
+                "Use the buttons below to continue."
+            )
+
+        # --------------------------------------------------
+        # Start buttons
+        # --------------------------------------------------
+
+        try:
+            start_markup = buttons.start_key(
+                message.lang,
+                private,
+            )
+
+        except Exception as e:
+            LOGGER.exception(
+                "Failed to create start buttons: %s",
+                e,
+            )
+            start_markup = None
+
+        # --------------------------------------------------
+        # Send START PHOTO
+        # --------------------------------------------------
+
+        sent = False
+
+        try:
+            if config.START_IMG:
+                await message.reply_photo(
+                    photo=config.START_IMG,
+                    caption=start_text,
+                    reply_markup=start_markup,
+                    quote=not private,
+                )
+
+                sent = True
+
+                LOGGER.info(
+                    "START photo sent successfully | user=%s | chat=%s",
+                    user_id,
+                    chat_id,
+                )
+
+            else:
+                LOGGER.warning(
+                    "START_IMG is empty/not configured."
+                )
+
+        except Exception as e:
+            LOGGER.exception(
+                "START photo failed | user=%s | chat=%s | error=%s",
+                user_id,
+                chat_id,
+                e,
+            )
+
+        # --------------------------------------------------
+        # TEXT FALLBACK
+        # --------------------------------------------------
+
+        if not sent:
+            try:
+                await message.reply_text(
+                    text=start_text,
+                    reply_markup=start_markup,
+                    quote=not private,
+                )
+
+                sent = True
+
+                LOGGER.info(
+                    "START text fallback sent successfully | "
+                    "user=%s | chat=%s",
+                    user_id,
+                    chat_id,
+                )
+
+            except Exception as e:
+                LOGGER.exception(
+                    "START text fallback FAILED | "
+                    "user=%s | chat=%s | error=%s",
+                    user_id,
+                    chat_id,
+                    e,
+                )
+
+        # --------------------------------------------------
+        # Save user
+        # --------------------------------------------------
+
+        if private:
+            try:
+                if await db.is_user(user_id):
+                    return
+
+            except Exception as e:
+                LOGGER.exception(
+                    "Database user check failed for %s: %s",
+                    user_id,
+                    e,
+                )
+                return
+
+            try:
+                await utils.send_log(message)
+
+            except Exception as e:
+                LOGGER.exception(
+                    "Failed to send user log for %s: %s",
+                    user_id,
+                    e,
+                )
+
+            try:
+                await db.add_user(user_id)
+
+                LOGGER.info(
+                    "User added successfully to database: %s",
+                    user_id,
+                )
+
+            except Exception as e:
+                LOGGER.exception(
+                    "Failed to add user %s: %s",
+                    user_id,
+                    e,
+                )
+
+    except Exception as e:
+        LOGGER.exception(
+            "UNHANDLED /start ERROR: %s",
+            e,
+        )
 
 
 # ==========================================================
@@ -325,14 +342,14 @@ async def start(_, message: types.Message):
 )
 @lang.language()
 async def settings(_, message: types.Message):
-    """Handle /playmode or /settings command."""
+    """Handle /playmode and /settings."""
 
     try:
-        await message.delete()
-    except Exception:
-        pass
+        try:
+            await message.delete()
+        except Exception:
+            pass
 
-    try:
         admin_only = await db.get_play_mode(
             message.chat.id
         )
@@ -341,20 +358,20 @@ async def settings(_, message: types.Message):
             message.chat.id
         )
 
-        _language = "en"
+        markup = buttons.settings_markup(
+            message.lang,
+            admin_only,
+            force_admin,
+            "en",
+            message.chat.id,
+        )
 
         await utils.safe_text(
             message,
             message.lang["start_settings"].format(
                 message.chat.title
             ),
-            reply_markup=buttons.settings_markup(
-                message.lang,
-                admin_only,
-                force_admin,
-                _language,
-                message.chat.id,
-            ),
+            reply_markup=markup,
             quote=True,
         )
 
@@ -367,7 +384,7 @@ async def settings(_, message: types.Message):
 
 
 # ==========================================================
-# NEW GROUP MEMBER / BOT ADDED
+# BOT ADDED TO GROUP
 # ==========================================================
 
 @app.on_message(
@@ -376,7 +393,7 @@ async def settings(_, message: types.Message):
 )
 @lang.language()
 async def _new_member(_, message: types.Message):
-    """Handle new member events - detect when bot is added."""
+    """Handle bot being added to a group."""
 
     try:
         if message.chat.type != enums.ChatType.SUPERGROUP:
@@ -395,34 +412,39 @@ async def _new_member(_, message: types.Message):
             if member.id != app.id:
                 continue
 
+            LOGGER.info(
+                "Bot added to group: %s | %s",
+                message.chat.title,
+                message.chat.id,
+            )
+
             try:
                 if await db.is_chat(message.chat.id):
                     return
 
             except Exception as e:
                 LOGGER.exception(
-                    "Group database check failed for %s: %s",
-                    message.chat.id,
+                    "Group database check failed: %s",
                     e,
                 )
+                return
 
             try:
-                await db.add_chat(
-                    message.chat.id
-                )
+                await db.add_chat(message.chat.id)
 
                 LOGGER.info(
-                    "Bot added to new group: %s (%s)",
-                    message.chat.title,
+                    "Group added successfully: %s",
                     message.chat.id,
                 )
 
             except Exception as e:
                 LOGGER.exception(
-                    "Failed to add group %s to database: %s",
+                    "Failed to save group %s: %s",
                     message.chat.id,
                     e,
                 )
+
+            return
 
     except Exception as e:
         LOGGER.exception(
